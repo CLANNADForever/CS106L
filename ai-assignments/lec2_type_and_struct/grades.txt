@@ -1,0 +1,3 @@
+Smith,John,85,90,95
+Doe,Jane,92,88,94
+Garcia,Carlos,78,85,80
