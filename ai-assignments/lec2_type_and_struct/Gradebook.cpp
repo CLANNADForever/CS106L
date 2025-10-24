@@ -89,7 +89,7 @@ Student findTopStudent(const vector<Student>& students) {
     
     Student topStudent = students[0]; // Placeholder
     double topScore = topStudent.finalScore;
-    for (const auto& student : students) {
+    for (const auto& student : students) { // 若按值复制，有额外开销，且可能会有修改的误解（实际上不会改变原值），用const auto&来让编译器提示
         if (student.finalScore > topScore) {
             topScore = student.finalScore;
             topStudent = student;

@@ -25,9 +25,9 @@ const std::string COURSES_NOT_OFFERED_PATH = "student_output/courses_not_offered
  * Hint: Remember what types C++ streams work with?!
  */
 struct Course {
-  /* STUDENT TODO */ title;
-  /* STUDENT TODO */ number_of_units;
-  /* STUDENT TODO */ quarter;
+  /* STUDENT TODO */ std::string title;
+  /* STUDENT TODO */ std::string number_of_units;
+  /* STUDENT TODO */ std::string quarter;
 };
 
 /**
@@ -60,6 +60,26 @@ struct Course {
  */
 void parse_csv(std::string filename, std::vector<Course> courses) {
   /* (STUDENT TODO) Your code goes here... */
+    std::ifstream inFile(filename);
+    if (!inFile.is_open()) {
+        std::cerr << "Error: Could not open log.txt" << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::getline(inFile, line); // remove the first line
+
+    while(std::getline(inFile, line)) {
+        std::string title, number_of_units, quarter;
+        std::stringstream ss(line); // construct the stringstream
+
+        std::getline(ss, title, ',');
+        std::getline(ss, number_of_units, ',');
+        std::getline(ss, quarter, ',');
+
+        Course c{title, number_of_units, quarter};
+        courses.push_back(c);
+    }
 }
 
 /**
@@ -102,17 +122,18 @@ void write_courses_not_offered(std::vector<Course> unlisted_courses) {
 }
 
 int main() {
-  /* Makes sure you defined your Course struct correctly! */
-  static_assert(is_valid_course<Course>, "Course struct is not correctly defined!");
+    /* Makes sure you defined your Course struct correctly! */
+    static_assert(is_valid_course<Course>, "Course struct is not correctly defined!");
 
-  std::vector<Course> courses;
-  parse_csv("courses.csv", courses);
+    std::vector<Course> courses;
+    parse_csv("courses.csv", courses);
 
-  /* Uncomment for debugging... */
-  // print_courses(courses);
 
-  write_courses_offered(courses);
-  write_courses_not_offered(courses);
+    print_courses(courses);
+    return 0;
+    //   write_courses_offered(courses);
+    //   write_courses_not_offered(courses);
 
-  return run_autograder();
+    //   return run_autograder();
+
 }
