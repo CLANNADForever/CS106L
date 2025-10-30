@@ -75,7 +75,8 @@
     "numbers": "cpp",
     "ranges": "cpp",
     "span": "cpp",
-    "text_encoding": "cpp"
+    "text_encoding": "cpp",
+    "chrono": "cpp"
   },
   "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe"
 }

@@ -14,7 +14,7 @@
 #include <string>
 #include <unordered_set>
 
-std::string kYourName = "STUDENT TODO"; // Don't forget to change this!
+std::string kYourName = "Wang Jishi"; // Don't forget to change this!
 
 /**
  * Takes in a file name and returns a set containing all of the applicant names as a set.
@@ -29,6 +29,14 @@ std::string kYourName = "STUDENT TODO"; // Don't forget to change this!
  */
 std::set<std::string> get_applicants(std::string filename) {
   // STUDENT TODO: Implement this function.
+    std::ifstream students("students.txt");
+    std::set<std::string> all_names;
+    std::string name;
+
+    while(getline(students, name)) {
+        all_names.insert(name);
+    }
+    return all_names;
 }
 
 /**
@@ -41,6 +49,14 @@ std::set<std::string> get_applicants(std::string filename) {
  */
 std::queue<const std::string*> find_matches(std::string name, std::set<std::string>& students) {
   // STUDENT TODO: Implement this function.
+    std::queue<const std::string*> matches;
+    for(const auto& student : students) {
+        if (name[0] == student[0]) {
+            const std::string* ptr  = &student;
+            matches.push(ptr);
+        }
+    }
+    return matches;
 }
 
 /**
@@ -55,6 +71,12 @@ std::queue<const std::string*> find_matches(std::string name, std::set<std::stri
  */
 std::string get_match(std::queue<const std::string*>& matches) {
   // STUDENT TODO: Implement this function.
+    if (matches.empty()) {
+        std::cout << "NO MATCHES FOUND" << std::endl; 
+        return "NO MATCHES FOUND";
+    }
+    auto* ptr = matches.back();
+    return *ptr;
 }
 
 /* #### Please don't remove this line! #### */
