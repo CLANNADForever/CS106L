@@ -33,7 +33,6 @@ struct LogStats {
  */
 LogStats analyzeLogFile(ifstream& inFile) {
     LogStats stats = {0, 0, 0}; // Initialize stats to zero
-    // TODO: Implement the rest of this function.
 
     // 1. Create a string variable to hold each line of the file.
     string line;

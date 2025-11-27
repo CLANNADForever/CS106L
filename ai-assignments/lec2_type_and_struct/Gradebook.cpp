@@ -14,7 +14,7 @@
 
 using namespace std;
 
-// TODO 1: Define the Student struct.
+// 1: Define the Student struct.
 // It should contain three fields:
 // - A string for the first name
 // - A string for the last name
@@ -38,7 +38,7 @@ vector<Student> processGrades(ifstream& inFile) {
     vector<Student> students;
     string line;
 
-    // TODO 2: Read the file line by line using getline.
+    // 2: Read the file line by line using getline.
     // For each line, you'll need to:
     // a. Create a stringstream from the line.
     // b. Declare variables for last name, first name, and the three scores.
@@ -81,7 +81,7 @@ Student findTopStudent(const vector<Student>& students) {
         return {}; // Return a default-initialized Student
     }
 
-    // TODO 3: Find the student with the highest score.
+    // 3: Find the student with the highest score.
     // a. Initialize a variable `topStudent` with the first student in the vector.
     // b. Loop through the rest of the students (starting from the second one).
     //    Use a modern range-based for loop. Remember the best practice: `const auto&`.
