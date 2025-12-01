@@ -1,119 +1,161 @@
 /*
- * File: FileSystem.h
- * ------------------
- * Defines the interfaces for the Node, File, Directory, and FileSystem classes.
+ * File: FileSystem.cpp
+ * --------------------
+ * Implements the Node, File, Directory, and FileSystem classes.
  */
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#include "FileSystem.h"
+#include <sstream>  // Required for stringstream
+#include <algorithm> // Required for std::find_if if you choose to use it
 
-#include <iostream>
-#include <string>
-#include <vector>
+// using namespace std;
 
-// Forward declaration to let Node know about Directory
-class Directory;
+// --- Node Class Implementation ---
 
-/*
- * Base class for all objects in our file system.
- * This is an abstract base class.
- */
-class Node {
-public:
-    // TODO: Declare the virtual destructor. Use the default implementation.
-    // virtual ~Node() = default;
+// Implement the Node constructor.
+Node::Node(const std::string& name) : m_name{name} {};
 
-    // TODO: Declare the pure virtual print function. It should take an optional int for indent level.
-    // virtual void print(...) const = 0;
-
-    // TODO: Declare the virtual getName getter.
-    // virtual std::string getName() const;
-
-protected:
-    // TODO: Declare the constructor. It should be protected so only derived classes can call it.
-    // Node(const std::string& name);
-
-    // TODO: Declare the name member variable.
-    // std::string m_name;
-};
-
-/*
- * Class representing a File in our file system.
- */
-class File : public Node {
-public:
-    // TODO: Declare the constructor for File. It should take a name and a size.
-    // File(...);
-
-    // TODO: Override the print function from the Node class.
-    // void print(...) const override;
-
-private:
-    // TODO: Declare the size member variable.
-    // size_t m_size;
-};
-
-/*
- * Class representing a Directory in our file system.
- */
-class Directory : public Node {
-public:
-    // TODO: Declare the constructor for Directory. It should take just a name.
-    // Directory(...);
-
-    // TODO: Declare the destructor. It must clean up the children nodes.
-    // ~Directory();
-
-    // TODO: Override the print function from the Node class.
-    // void print(...) const override;
-
-    // TODO: Declare functions to add a child node. You might want separate functions for File and Directory.
-    // void addChild(Node* child);
-
-    // TODO: Declare a function to find a child node by name. This will be helpful for path parsing.
-    // Node* findChild(const std::string& name);
-
-private:
-    // TODO: Declare the vector to hold pointers to child nodes.
-    // std::vector<Node*> m_children;
-};
+// Implement the Node's getName function.
+std::string Node::getName() const {
+    return m_name;
+}
 
 
-/*
- * The main class to manage the entire file system simulation.
- */
-class FileSystem {
-public:
-    // TODO: Declare the constructor and destructor.
-    // FileSystem();
-    // ~FileSystem();
+// --- File Class Implementation ---
 
-    // TODO: Declare the main public interface functions.
-    // void listAll() const;
-    // bool addFile(const std::string& path, size_t size);
-    // bool addDirectory(const std::string& path);
-    
-    // TODO: Declare a getter for the root node, which will be useful for the `find` template function.
-    // Directory* getRoot() const;
+// Implement the File constructor.
+File::File(std::string name, size_t size) : Node(name), m_size{size} {}; //TODO
 
-private:
-    // TODO: Declare the root directory pointer.
-    // Directory* m_root;
-};
+// Implement the File's print function.
+// Remember to handle the indentation. A simple loop printing spaces works well.
+void File::print(int indent /*=0*/) const {
+    printSpace(indent);
+    std::cout << "-- " << m_name << " (" << m_size << " bytes)" << std::endl;
+}
 
 
-/*
- * A generic template function to find a node of a specific type.
- * Note: Since this is a template function, its implementation MUST be in the header file.
- */
-// TODO: Implement the `find` template function here.
-// template <typename T>
-// T* find(Node* root, const std::string& name) {
-//     // 1. Check if the root itself matches the type and name.
-//     //    Use dynamic_cast to check the type.
-//     // 2. If the root is a Directory, recursively search its children.
-//     // 3. If not found after checking everything, return nullptr.
-// }
+// --- Directory Class Implementation ---
 
+// Implement the Directory constructor.
+Directory::Directory(std::string name) : Node(name) {};
 
-#endif // FILESYSTEM_H
+// Implement the Directory destructor.
+// Loop through m_children and delete each pointer.
+Directory::~Directory() {
+    for (const auto& p : m_children) {
+        delete p;
+    }
+}
+
+// Implement the Directory's print function.
+// It should first print its own name with indentation,
+// then recursively call print() on all its children with increased indentation.
+void Directory::print(int indent /*=0*/) const {
+    printSpace(indent);
+    std::cout << "+ " << m_name << std::endl;
+    for (const auto& p : m_children) {
+        p->print(indent + 2);
+    }
+} 
+
+// Implement other Directory methods like addChild and findChild.
+void Directory::addChild(Node* child) {
+    m_children.push_back(child);
+}
+
+Node* Directory::findChild(const std::string& name) const {
+    for (const auto& p : m_children) {
+        if (p->getName() == name) {
+            return p;
+        }
+    }
+    return nullptr;
+}
+
+// --- FileSystem Class Implementation ---
+
+// Implement the FileSystem constructor.
+// It should initialize m_root with a new Directory.
+FileSystem::FileSystem() {
+    m_root = new Directory("/"); //TODO
+}
+
+// Implement the FileSystem destructor.
+// It should delete m_root.
+FileSystem::~FileSystem() {
+    delete m_root;
+}
+
+// Implement FileSystem's listAll and getRoot methods.
+void FileSystem::listAll() const {
+    m_root->print();
+}
+
+Directory* FileSystem::getRoot() const {
+    return m_root;
+}
+
+// Implement addFile and addDirectory. This is the most complex part.
+// You'll need to parse the path string.
+// A helper function that takes a path and returns the parent directory node might be very useful!
+
+bool FileSystem::addFile(const std::string& path, size_t size) {
+    auto allPathString = splitPath(path);
+    Directory* parentDir = getNode(m_root, allPathString);
+    if (parentDir == nullptr) {
+        return false;
+    }
+
+    std::string name = allPathString.at(allPathString.size() - 1);
+    // 已经存在则不能创建
+    if (parentDir->findChild(name)) {
+        return false;
+    }
+    File* f = new File(name, size);
+    parentDir->addChild(f);
+    return true;
+}
+
+bool FileSystem::addDirectory(const std::string& path) {
+    auto allPathString = splitPath(path);
+    Directory* parentDir = getNode(m_root, allPathString);
+    if (parentDir == nullptr) {
+        return false;
+    }
+    std::string name = allPathString.at(allPathString.size() - 1);
+    // 已经存在则不能创建
+    if (parentDir->findChild(name)) {
+        return false;
+    }
+    Directory* d = new Directory(name);
+    parentDir->addChild(d);
+    return true;
+}
+
+std::vector<std::string> FileSystem::splitPath(const std::string& path) const {
+    std::stringstream ss(path);
+    std::string pathString;
+    std::vector<std::string> allPathString;
+    while (std::getline(ss, pathString, '/')) {
+        allPathString.push_back(pathString);
+    }
+
+    return allPathString;
+}
+
+Directory* FileSystem::getNode(Directory* root, const std::vector<std::string>& path) const {
+    int n = path.size();
+    Directory* curDir = root;
+    for (int i = 1; i < n - 1; i++) {
+        std::string dirName = path.at(i);
+        Node* next = curDir->findChild(dirName);
+        
+        Directory* dNode = dynamic_cast<Directory*>(next);
+        if (dNode == nullptr) {
+            return nullptr;
+        } else {
+            curDir = dNode;
+        }
+    }
+    return curDir;
+}
