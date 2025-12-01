@@ -1,5 +1,4 @@
 #include "spellcheck.h"
-
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -12,7 +11,10 @@ std::vector<Iterator> find_all(Iterator begin, Iterator end, UnaryPred pred);
 
 Corpus tokenize(std::string& source) {
   // 1.获取一个所有指向空白字符的迭代器构成的列表
-  auto spaceIter = find_all(source.begin(), source.end(), ::isspace); // FIXME
+  auto spaceIter = find_all(source.begin(), source.end(), 
+    // 创建一个 Lambda，它内部调用 std::isspace
+    [](unsigned char c) { return std::isspace(c); }
+);
   
   // 2.构建一个初始化Token的函数
   auto buildToken = [&source] (auto it1, auto it2) {
@@ -34,8 +36,35 @@ Corpus tokenize(std::string& source) {
 }
 
 std::set<Misspelling> spellcheck(const Corpus& source, const Dictionary& dictionary) {
-  /* Implement this method */
-  return std::set<Misspelling>();
+  namespace rv = std::ranges::views;
+  // 1.跳过已经正确拼写的单词
+  auto checkMisspell = [&dictionary] (const Token& t) {
+    return !dictionary.contains(t.content);
+  };
+
+  // 2.查找仅有一个编辑距离的错误拼写
+  auto giveSuggestions = [&dictionary] (const Token& t) {
+    // 构造辅助函数
+    auto oneDistance = [&t] (const std::string& s) {
+      return levenshtein(s, t.content) == 1;
+    };
+
+    auto view = rv::filter(dictionary, oneDistance);
+    std::set<std::string> suggestions(view.begin(), view.end());
+    return Misspelling{t, suggestions};
+  };
+
+  // 3.删除没有建议的错误拼写
+  auto isNotEmpty = [] (const Misspelling& m) {
+    return !m.suggestions.empty();
+  };
+
+  auto missspellings = source 
+    | rv::filter(checkMisspell)
+    | rv::transform(giveSuggestions)
+    | rv::filter(isNotEmpty);
+
+  return std::set<Misspelling>(missspellings.begin(), missspellings.end());
 };
 
 /* Helper methods */
